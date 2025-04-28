@@ -2,12 +2,13 @@ package model
 
 // SatLocation represents satellite location and position in space
 type SatLocation struct {
-	X   float64 // X coordinate in Earth-fixed frame [km]
-	Y   float64 // Y coordinate in Earth-fixed frame [km]
-	Z   float64 // Z coordinate in Earth-fixed frame [km]
-	Lat float64 // Latitude [degree]
-	Lng float64 // Longitude [degree]
-	Alt float64 // Altitude from Earth surface [km]
+	X         float64 // X coordinate in Earth-fixed frame [km]
+	Y         float64 // Y coordinate in Earth-fixed frame [km]
+	Z         float64 // Z coordinate in Earth-fixed frame [km]
+	Lat       float64 // Latitude [degree]
+	Lng       float64 // Longitude [degree]
+	Alt       float64 // Altitude from Earth surface [km]
+	Velocity  float64 // Velocity [km/s], optional
 }
 
 // TleOrbitalElement contains the orbital elements parsed from a TLE
