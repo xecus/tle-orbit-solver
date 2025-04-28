@@ -99,14 +99,14 @@ func CalculateVelocity(satLoc1, satLoc2 *model.SatLocation) float64 {
 	diffX := satLoc2.X - satLoc1.X
 	diffY := satLoc2.Y - satLoc1.Y
 	diffZ := satLoc2.Z - satLoc1.Z
-	
+
 	util.LogDebug("DiffX[km] = %f\n", diffX)
 	util.LogDebug("DiffY[km]= %f\n", diffY)
 	util.LogDebug("DiffZ[km] = %f\n", diffZ)
-	
+
 	velocity := math.Sqrt(diffX*diffX + diffY*diffY + diffZ*diffZ)
 	util.LogDebug("V[km/s] = %f\n", velocity)
-	
+
 	return velocity
 }
 
