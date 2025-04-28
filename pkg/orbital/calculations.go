@@ -1,7 +1,6 @@
 package orbital
 
 import (
-	"fmt"
 	"math"
 	"time"
 
@@ -27,37 +26,37 @@ func CalculateSatelliteLocation(sat *model.TleOrbitalElement, targetTime time.Ti
 
 	// Convert to UTC
 	targetTime = targetTime.UTC()
-	fmt.Println("targetTime=", targetTime)
+	util.LogDebug("targetTime=%v\n", targetTime)
 
 	// Calculate time difference from epoch
 	t_diff := calculateTimeDifference(targetTime, epocTimeYear, epocTimeDay)
-	fmt.Println("t_diff=", t_diff)
+	util.LogDebug("t_diff=%v\n", t_diff)
 
 	// Calculate orbital semi-axes
 	a, b := calculateOrbitalSemiAxes(m1)
-	fmt.Println("a [km] =", a)
-	fmt.Println("b [km] =", b)
-	fmt.Println("ecc =", ecc)
+	util.LogDebug("a [km] =%v\n", a)
+	util.LogDebug("b [km] =%v\n", b)
+	util.LogDebug("ecc =%v\n", ecc)
 
 	// Calculate mean anomaly
 	fracM_Radian := calculateMeanAnomaly(m0, m1, m2, t_diff)
-	fmt.Println("fracM (Radian) =", fracM_Radian)
+	util.LogDebug("fracM (Radian) =%v\n", fracM_Radian)
 
 	// Solve Kepler's equation for eccentric anomaly
 	eccentricAnomaly, valerr := kepler.NewtonRaphson(ecc, fracM_Radian, 0.00001)
-	fmt.Println("eccentricAnomaly=", eccentricAnomaly)
-	fmt.Println("valerr=", valerr)
+	util.LogDebug("eccentricAnomaly=%v\n", eccentricAnomaly)
+	util.LogDebug("valerr=%v\n", valerr)
 
 	// Calculate position in orbital plane
 	u, v := calculatePositionInOrbitalPlane(a, ecc, eccentricAnomaly)
-	fmt.Println("u (km)=", u)
-	fmt.Println("v (km)=", v)
+	util.LogDebug("u (km)=%v\n", u)
+	util.LogDebug("v (km)=%v\n", v)
 
 	// Apply perturbation corrections
 	angleOmegaA_Degree, angleOmegaB_Degree := calculatePerturbationCorrection(
 		angleOmegaA0, angleOmegaB0, angleI0, a, t_diff)
-	fmt.Println("angleOmegaA (Degree)=", angleOmegaA_Degree)
-	fmt.Println("angleOmegaB (Degree)=", angleOmegaB_Degree)
+	util.LogDebug("angleOmegaA (Degree)=%v\n", angleOmegaA_Degree)
+	util.LogDebug("angleOmegaB (Degree)=%v\n", angleOmegaB_Degree)
 
 	// Convert angles to radians
 	angleOmegaA_Rad := util.Deg2Rad(angleOmegaA_Degree)
@@ -66,24 +65,24 @@ func CalculateSatelliteLocation(sat *model.TleOrbitalElement, targetTime time.Ti
 
 	// Transform to equatorial coordinate system
 	x, y, z := transformToEquatorial(u, v, angleOmegaA_Rad, angleOmegaB_Rad, angleI0_Rad)
-	fmt.Println("x (km) =", x)
-	fmt.Println("y (km) =", y)
-	fmt.Println("z (km) =", z)
+	util.LogDebug("x (km) =%v\n", x)
+	util.LogDebug("y (km) =%v\n", y)
+	util.LogDebug("z (km) =%v\n", z)
 
 	// Transform to Earth-fixed coordinate system
 	largeX, largeY, largeZ := transformToEarthFixed(x, y, z, targetTime)
-	fmt.Println("LargeX (km) =", largeX)
-	fmt.Println("LargeY (km) =", largeY)
-	fmt.Println("LargeZ (km) =", largeZ)
+	util.LogDebug("LargeX (km) =%v\n", largeX)
+	util.LogDebug("LargeY (km) =%v\n", largeY)
+	util.LogDebug("LargeZ (km) =%v\n", largeZ)
 
 	// Calculate latitude and longitude
 	lat, lng := calculateLatLong(largeX, largeY, largeZ)
-	fmt.Println("Fai (Degree) =", lat)
-	fmt.Println("Lambda (Degree) =", lng)
+	util.LogDebug("Fai (Degree) =%v\n", lat)
+	util.LogDebug("Lambda (Degree) =%v\n", lng)
 
 	// Calculate altitude
 	alt := calculateAltitude(largeX, largeY, largeZ)
-	fmt.Println("Alt (km) =", alt)
+	util.LogDebug("Alt (km) =%v\n", alt)
 
 	return &model.SatLocation{
 		X:   largeX,
@@ -101,12 +100,12 @@ func CalculateVelocity(satLoc1, satLoc2 *model.SatLocation) float64 {
 	diffY := satLoc2.Y - satLoc1.Y
 	diffZ := satLoc2.Z - satLoc1.Z
 	
-	fmt.Printf("DiffX[km] = %f\n", diffX)
-	fmt.Printf("DiffY[km]= %f\n", diffY)
-	fmt.Printf("DiffZ[km] = %f\n", diffZ)
+	util.LogDebug("DiffX[km] = %f\n", diffX)
+	util.LogDebug("DiffY[km]= %f\n", diffY)
+	util.LogDebug("DiffZ[km] = %f\n", diffZ)
 	
 	velocity := math.Sqrt(diffX*diffX + diffY*diffY + diffZ*diffZ)
-	fmt.Printf("V[km/s] = %f\n", velocity)
+	util.LogDebug("V[km/s] = %f\n", velocity)
 	
 	return velocity
 }
@@ -118,14 +117,14 @@ func calculateTimeDifference(targetTime time.Time, epocTimeYear int, epocTimeDay
 	// Target time days from year start
 	tmp := time.Date(targetTime.Year(), time.January, 1, 0, 0, 0, 0, time.UTC)
 	t_diff1 = float64(targetTime.Unix()-tmp.Unix())/86400.0 + 1.0
-	fmt.Println("t_diff1=", t_diff1)
+	util.LogDebug("t_diff1=%v\n", t_diff1)
 
 	// Epoch time (EpocTime)
 	tmp = time.Date(epocTimeYear, time.January, 1, 0, 0, 0, 0, time.UTC)
 	tmp = tmp.Add(time.Duration(float64(time.Second) * 86400.0 * epocTimeDay))
 	tmp2 := time.Date(epocTimeYear, time.January, 1, 0, 0, 0, 0, time.UTC)
 	t_diff2 = float64(tmp.Unix()-tmp2.Unix()) / 86400.0
-	fmt.Println("t_diff2=", t_diff2)
+	util.LogDebug("t_diff2=%v\n", t_diff2)
 
 	t_diff := t_diff1 - t_diff2
 	if t_diff < 0.0 {
@@ -148,14 +147,14 @@ func calculateOrbitalSemiAxes(meanMotion float64) (float64, float64) {
 func calculateMeanAnomaly(m0, m1, m2, t_diff float64) float64 {
 	// M
 	m := (m0 / 360.0) + m1*t_diff + 0.5*m2*t_diff*t_diff
-	fmt.Println("m (Rev) =", m)
+	util.LogDebug("m (Rev) =%v\n", m)
 
 	// Convert from revs to radians
 	fracM := m - float64(int64(m))
 	fracM_Degree := fracM * 360.0
 	fracM_Radian := fracM * (2 * math.Pi)
 
-	fmt.Println("fracM (Degree) =", fracM_Degree)
+	util.LogDebug("fracM (Degree) =%v\n", fracM_Degree)
 
 	return fracM_Radian
 }
@@ -229,7 +228,7 @@ func transformToEarthFixed(x, y, z float64, targetTime time.Time) (float64, floa
 	shetaG_Deg := (sheta - float64(int64(sheta))) * 360.0
 	shetaG_Rad := (sheta - float64(int64(sheta))) * 2.0 * math.Pi
 
-	fmt.Println("ShetaG (Degree) = ", shetaG_Deg)
+	util.LogDebug("ShetaG (Degree) = %v\n", shetaG_Deg)
 
 	// Apply rotation matrix around z-axis in reverse direction
 	elemA := []float64{
